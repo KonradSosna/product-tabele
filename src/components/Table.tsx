@@ -3,14 +3,12 @@ import {
 	CircularProgress,
 	LinearProgress,
 	Paper,
-	Stack,
-	Switch,
 	Table,
 	TableBody,
 	TableCell,
 	TableContainer,
 	TableRow,
-	Typography,
+	TableSortLabel,
 } from '@mui/material';
 import { productData } from '../utils/getproducts';
 import { useState, useTransition } from 'react';
@@ -30,12 +28,20 @@ export const ProductTable = ({
 	subCategries,
 	filterTerm,
 }: ProductTableProps) => {
-	const [checked, setChecked] = useState(true);
 	const [isPending, startTransmision] = useTransition();
+	const [active, setActive] = useState(true);
+	const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		startTransmision(() => setChecked(event.target.checked));
+	const handleSort = () => {
+		startTransmision(() => {
+			if (active === false) {
+				setActive(true);
+				setSortOrder('asc');
+			} else if (sortOrder === 'asc') setSortOrder('desc');
+			else if (sortOrder === 'desc') setActive(false);
+		});
 	};
+
 	return (
 		<Paper sx={{ w: 900, p: 2 }}>
 			<TableContainer sx={{ height: 500 }}>
@@ -76,35 +82,46 @@ export const ProductTable = ({
 															</TableRow>
 															<TableRow>
 																<TableRow className="border-b-[1px]">
-																	<TableCell align="center">Index</TableCell>
-																	<TableCell align="center">Name</TableCell>
-																	<TableCell align="center">
-																		Price
-																		<Stack
-																			className="flex items-center justify-center"
-																			direction="row"
-																			alignItems="center"
-																		>
-																			<Typography fontSize={10}>Asc</Typography>
-																			<Switch
-																				checked={checked}
-																				onChange={handleChange}
-																			/>
-																			<Typography fontSize={10}>
-																				Desc
-																			</Typography>
-																		</Stack>
+																	<TableCell
+																		className="w-[200px]"
+																		align="center"
+																	>
+																		Index
 																	</TableCell>
-																	<TableCell align="center">Quantity</TableCell>
+																	<TableCell
+																		className="w-[200px]"
+																		align="center"
+																	>
+																		Name
+																	</TableCell>
+																	<TableCell
+																		className="w-[200px]"
+																		align="center"
+																	>
+																		Price
+																		<TableSortLabel
+																			active={active}
+																			direction={sortOrder}
+																			onClick={handleSort}
+																		/>
+																	</TableCell>
+																	<TableCell
+																		className="w-[200px]"
+																		align="center"
+																	>
+																		Quantity
+																	</TableCell>
 																</TableRow>
 																{subCat.products
 																	.filter((item) =>
 																		item.name.includes(filterTerm)
 																	)
 																	.sort((a, b) =>
-																		checked
+																		active && sortOrder === 'asc'
+																			? a.price - b.price
+																			: active && sortOrder === 'desc'
 																			? b.price - a.price
-																			: a.price - b.price
+																			: 0
 																	)
 																	.map((product) => (
 																		<TableRow key={product.index}>
