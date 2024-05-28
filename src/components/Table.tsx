@@ -1,13 +1,19 @@
 import {
+	Box,
 	CircularProgress,
+	LinearProgress,
 	Paper,
+	Stack,
+	Switch,
 	Table,
 	TableBody,
 	TableCell,
 	TableContainer,
 	TableRow,
+	Typography,
 } from '@mui/material';
 import { productData } from '../utils/getproducts';
+import { useState, useTransition } from 'react';
 
 type ProductTableProps = {
 	isPendingCat: boolean;
@@ -24,6 +30,12 @@ export const ProductTable = ({
 	subCategries,
 	filterTerm,
 }: ProductTableProps) => {
+	const [checked, setChecked] = useState(true);
+	const [isPending, startTransmision] = useTransition();
+
+	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		startTransmision(() => setChecked(event.target.checked));
+	};
 	return (
 		<Paper sx={{ w: 900, p: 2 }}>
 			<TableContainer sx={{ height: 500 }}>
@@ -63,11 +75,37 @@ export const ProductTable = ({
 																</TableCell>
 															</TableRow>
 															<TableRow>
+																<TableRow className="border-b-[1px]">
+																	<TableCell align="center">Index</TableCell>
+																	<TableCell align="center">Name</TableCell>
+																	<TableCell align="center">
+																		Price
+																		<Stack
+																			className="flex items-center justify-center"
+																			direction="row"
+																			alignItems="center"
+																		>
+																			<Typography fontSize={10}>Asc</Typography>
+																			<Switch
+																				checked={checked}
+																				onChange={handleChange}
+																			/>
+																			<Typography fontSize={10}>
+																				Desc
+																			</Typography>
+																		</Stack>
+																	</TableCell>
+																	<TableCell align="center">Quantity</TableCell>
+																</TableRow>
 																{subCat.products
 																	.filter((item) =>
 																		item.name.includes(filterTerm)
 																	)
-																	.sort((a, b) => a.price - b.price)
+																	.sort((a, b) =>
+																		checked
+																			? b.price - a.price
+																			: a.price - b.price
+																	)
 																	.map((product) => (
 																		<TableRow key={product.index}>
 																			<TableCell
@@ -107,6 +145,11 @@ export const ProductTable = ({
 					</Table>
 				)}
 			</TableContainer>
+			{isPending && (
+				<Box sx={{ width: '100%' }}>
+					<LinearProgress />
+				</Box>
+			)}
 		</Paper>
 	);
 };
